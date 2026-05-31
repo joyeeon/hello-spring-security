@@ -6,6 +6,7 @@ import kr.ac.hansung.repository.ProductRepository;
 import kr.ac.hansung.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -22,12 +23,27 @@ public class ProductController {
     private final ProductRepository productRepository;
 
     @GetMapping
-    public String list(Model model,
-                       @PageableDefault(size = 5, sort = "id", direction = Sort.Direction.DESC)
-                       Pageable pageable) {
-        Page<Product> productPage = productRepository.findAll(pageable);
-        model.addAttribute("productsPage", productPage);
-        model.addAttribute("products", productPage.getContent());
+    public String list(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            Model model) {
+        // URL 파라미터(page, size)로 페이지 요청 객체 생성, id 순 정렬
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by("id"));
+
+        // 빈 문자열("")을 null로 정규화 → Thymeleaf URL에 keyword 파라미터 미포함
+        String normalizedKeyword = (keyword != null && !keyword.isBlank()) ? keyword : null;
+
+        Page<Product> productPage;
+        if (normalizedKeyword != null) {
+            // 검색어가 있으면 키워드로 검색
+            productPage = productService.searchProducts(normalizedKeyword, pageRequest);
+        } else {
+            // 검색어가 없으면 전체 목록 조회
+            productPage = productService.getProducts(pageRequest);
+        }
+        model.addAttribute("productPage", productPage);
+        model.addAttribute("keyword", normalizedKeyword);
         return "products/list";
     }
 
