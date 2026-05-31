@@ -14,4 +14,13 @@ public class PasswordChangeDto {
 
     @NotBlank (message = "새 비밀번호 확인을 입력하세요")
     private String confirmPassword;
+
+    public boolean getNewPassword() {
+    }
+
+    public Object getConfirmPassword() {
+    }
+
+    public String getCurrentPassword() {
+    }
 }
