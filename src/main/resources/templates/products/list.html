@@ -16,6 +16,10 @@
         .badge-stock-low { background-color: #f59e0b; }
         .badge-stock-out { background-color: #ef4444; }
         .product-price { font-weight: 700; color: #e94560; }
+        .pagination .page-link { color: #0f3460; border-color: #dee2e6; }
+        .pagination .page-item.active .page-link { background-color: #e94560; border-color: #e94560; color: #fff; }
+        .pagination .page-link:hover:not(.disabled-link) { background-color: #0f3460; color: #fff; border-color: #0f3460; }
+        .pagination .page-item.disabled .page-link { color: #adb5bd; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -48,7 +52,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div class="page-header">
             <h4 class="fw-bold mb-0">상품 목록</h4>
-            <small class="text-muted">총 <span th:text="${#lists.size(products)}"></span>개 상품</small>
+            <small class="text-muted">총 <span th:text="${productsPage.totalElements}"></span>개 상품</small>
         </div>
         <a th:href="@{/products/add}" class="btn btn-danger btn-sm px-4 fw-semibold"
            sec:authorize="hasRole('ADMIN')">+ 상품 등록</a>
@@ -103,6 +107,35 @@
                 </table>
             </div>
         </div>
+    </div>
+
+    <!-- Pagination -->
+    <div th:if="${productsPage.totalPages > 1}"
+         class="d-flex justify-content-center mt-4"
+         th:with="cur=${productsPage.number},
+                  total=${productsPage.totalPages},
+                  s0=${productsPage.number > 1 ? productsPage.number - 1 : 0},
+                  e0=${(s0 + 3) < (total - 1) ? (s0 + 3) : (total - 1)},
+                  startPage=${(e0 - 3) > 0 ? (e0 - 3) : 0}">
+        <nav>
+            <ul class="pagination">
+                <li class="page-item" th:classappend="${!productsPage.hasPrevious()} ? 'disabled'">
+                    <a class="page-link"
+                       th:href="@{/products(page=${cur - 1}, size=5)}">이전</a>
+                </li>
+                <li th:each="i : ${#numbers.sequence(startPage, e0)}"
+                    class="page-item"
+                    th:classappend="${i == cur} ? 'active'">
+                    <a class="page-link"
+                       th:href="@{/products(page=${i}, size=5)}"
+                       th:text="${i + 1}"></a>
+                </li>
+                <li class="page-item" th:classappend="${!productsPage.hasNext()} ? 'disabled'">
+                    <a class="page-link"
+                       th:href="@{/products(page=${cur + 1}, size=5)}">다음</a>
+                </li>
+            </ul>
+        </nav>
     </div>
 </div>
 
